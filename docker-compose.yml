@@ -1,0 +1,67 @@
+services:
+  conpot-default:
+    image: honeynet/conpot
+    container_name: conpot-default
+    command:
+      - /home/conpot/.local/bin/conpot
+      - --template
+      - default
+      - --logfile
+      - /var/log/conpot/conpot.log
+      - -f
+      - --temp_dir
+      - /tmp
+    ports:
+      - "127.0.0.1:502:5020"
+      - "127.0.0.1:80:8800"
+      - "127.0.0.1:161:16100/udp"
+    volumes:
+      - ./logs/default:/var/log/conpot
+    networks:
+      - honeynet
+    restart: on-failure:3
+
+  conpot-kamstrup:
+    image: honeynet/conpot
+    container_name: conpot-kamstrup
+    command:
+      - /home/conpot/.local/bin/conpot
+      - --template
+      - kamstrup_382
+      - --logfile
+      - /var/log/conpot/conpot.log
+      - -f
+      - --temp_dir
+      - /tmp
+    ports:
+      - "127.0.0.1:1025:1025"
+      - "127.0.0.1:50100:50100"
+    volumes:
+      - ./logs/kamstrup:/var/log/conpot
+    networks:
+      - honeynet
+    restart: on-failure:3
+
+  conpot-guardian:
+    image: honeynet/conpot
+    container_name: conpot-guardian
+    command:
+      - /home/conpot/.local/bin/conpot
+      - --template
+      - guardian_ast
+      - --logfile
+      - /var/log/conpot/conpot.log
+      - -f
+      - --temp_dir
+      - /tmp
+    ports:
+      - "127.0.0.1:10001:10001"
+    volumes:
+      - ./logs/guardian:/var/log/conpot
+    networks:
+      - honeynet
+    restart: on-failure:3
+
+networks:
+  honeynet:
+    driver: bridge
