@@ -1,0 +1,21 @@
+# Python virtual environment
+.venv/
+venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Generated runtime data
+data/
+*.jsonl
+*.log
+
+# Local secrets
+.env
+.env.*
+
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/
