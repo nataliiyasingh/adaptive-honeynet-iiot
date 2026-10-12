@@ -50,3 +50,35 @@ This project is intended for an isolated, authorised cybersecurity laboratory. D
 
 This is an educational cybersecurity research project. Performance claims will be based on documented experiments rather than assumed results.
 
+## System Architecture
+
+The prototype uses a Modbus TCP proxy between the client and the Conpot industrial decoy. Requests are scored as they pass through the proxy. The resulting score determines whether traffic receives the normal decoy response or an adapted response.
+
+```mermaid
+flowchart TD
+    A[Modbus TCP Client] --> B[Adaptive Modbus Proxy]
+
+    B --> C[Request Classification]
+    C --> D[Behaviour Score]
+    D --> E[Deception Policy]
+
+    B <--> F[Conpot Decoy]
+    E --> G{Selected Mode}
+
+    G -->|Baseline or Engagement| H[Forward Decoy Response]
+    G -->|High Deception| I[Substitute Register Response]
+
+    H --> J[Client Response]
+    I --> J
+
+    B --> K[Security Event Log]
+    I --> L[Adaptive Action Log]
+```
+
+### Main Components
+
+- **Adaptive Modbus Proxy:** Receives client requests, forwards them to Conpot, and can modify selected responses.
+- **Request Classification and Behaviour Score:** Assigns points according to observed Modbus function codes and accumulates the score by source IP.
+- **Deception Policy:** Selects a response mode based on the cumulative score.
+- **Conpot Decoy:** Provides the underlying simulated industrial service.
+- **Security Event and Adaptive Action Logs:** Record observed requests and changes made by the proxy.
