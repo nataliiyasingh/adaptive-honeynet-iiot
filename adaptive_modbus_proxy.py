@@ -187,25 +187,24 @@ async def handle_client(client_reader, client_writer):
                 and response[7] == (function_code | 0x80)
                 and response[8] == 2
             ):
-                response = (
-                    response[:4]
-                    + b"\x00\x05"
-                    + response[6:7]
-                    + bytes([function_code, 2, 0x01, 0xA4])
-                )
-
+                # Preserve Conpot's actual response; do not inject an
+                # unvalidated synthetic register value.
                 record_action({
                     "timestamp": now_utc(),
                     "source_ip": source_ip,
                     "score": state.score,
                     "classification": state.classification,
                     "mode": state.deception_mode,
-                    "action": "substituted_decoy_register_response",
-                    "register_value_hex": "01a4",
-                    "reason": policy.reason,
+                    "action": "upstream_exception_passed_through",
+                    "upstream_response_hex": response.hex(),
+                    "reason": (
+                        "Synthetic response substitution disabled; "
+                        "preserved the upstream Conpot response."
+                    ),
                 })
                 print(
-                    "ADAPTIVE ACTION: substituted decoy register response",
+                    "ADAPTIVE ACTION: passed through Conpot exception; "
+                    "synthetic substitution disabled",
                     flush=True,
                 )
 
