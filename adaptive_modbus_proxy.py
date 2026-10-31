@@ -10,7 +10,7 @@ from deception.policy import select_policy
 from eventlog.schema import SecurityEvent
 from eventlog.storage import EventStore
 
-LISTEN_HOST = "127.0.0.1"
+LISTEN_HOST = "192.168.77.10"
 LISTEN_PORT = 1502
 UPSTREAM_HOST = "127.0.0.1"
 UPSTREAM_PORT = 502
@@ -187,24 +187,33 @@ async def handle_client(client_reader, client_writer):
                 and response[7] == (function_code | 0x80)
                 and response[8] == 2
             ):
-                # Preserve Conpot's actual response; do not inject an
-                # unvalidated synthetic register value.
+                # Lab-only decoy: return one simulated register value.
+                # Keep the original Conpot response in the audit log.
+                original_response = response
+                decoy_register_value = 420
+                response = (
+                    original_response[:7]
+                    + bytes([function_code, 2])
+                    + decoy_register_value.to_bytes(2, "big")
+                )
                 record_action({
                     "timestamp": now_utc(),
                     "source_ip": source_ip,
                     "score": state.score,
                     "classification": state.classification,
                     "mode": state.deception_mode,
-                    "action": "upstream_exception_passed_through",
-                    "upstream_response_hex": response.hex(),
+                    "action": "substituted_simulated_decoy_register_response",
+                    "upstream_response_hex": original_response.hex(),
+                    "client_response_hex": response.hex(),
+                    "decoy_register_value": decoy_register_value,
                     "reason": (
-                        "Synthetic response substitution disabled; "
-                        "preserved the upstream Conpot response."
+                        "High-deception lab policy substituted a documented "
+                        "simulated register value for an upstream address exception."
                     ),
                 })
                 print(
-                    "ADAPTIVE ACTION: passed through Conpot exception; "
-                    "synthetic substitution disabled",
+                    "ADAPTIVE ACTION: simulated decoy register response "
+                    f"substituted; value={decoy_register_value}",
                     flush=True,
                 )
 
